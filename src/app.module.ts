@@ -1,7 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { RabbitMQ } from './common/constants';
+import { UsuarioModule } from './usuario/usuario.module';
+import { EmpresaModule } from './empresa/empresa.module';
 
 @Module({
   imports: [
@@ -9,8 +12,23 @@ import { ConfigModule } from '@nestjs/config';
       envFilePath: ['.env.development'],
       isGlobal: true,
     }),
+    ClientsModule.register([
+      {
+        name: 'API_Gateway',
+        transport: Transport.RMQ,
+        options: {
+          urls: [process.env.AMQP_URL],
+          queue: RabbitMQ.UsuarioQueue,
+          queueOptions: {
+            durable: false
+          },
+        },
+      },
+    ]),
+    UsuarioModule,
+    EmpresaModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [],
 })
 export class AppModule {}
